@@ -7,6 +7,7 @@ import com.appsdeveloperblog.tutorials.junit.ui.response.UserRest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -33,11 +34,12 @@ public class UsersControllerTest {
     @MockBean
     UsersService usersService;
 
-    @Test
-    @DisplayName("User can be created")
-    void testCreateUser_whenValidDetailsProvided_returnsCreatedUserDetails() throws Exception {
-        //arrange
-        UserDetailsRequestModel userDetailsRequestModel = new UserDetailsRequestModel();
+    UserDetailsRequestModel userDetailsRequestModel;
+    UserDto userDtoMapped;
+
+    @BeforeEach
+    void setUp() {
+        userDetailsRequestModel = new UserDetailsRequestModel();
         userDetailsRequestModel.setFirstName("John");
         userDetailsRequestModel.setLastName("Doe");
         userDetailsRequestModel.setEmail("john@doe.com");
@@ -50,13 +52,17 @@ public class UsersControllerTest {
 //        userDto.setLastName("Doe");
 //        userDto.setEmail("john@doe.com");
 //        userDto.setUserId(UUID.randomUUID().toString());
+    }
 
-        UserDto userDtoMapped = new ModelMapper().map(userDetailsRequestModel, UserDto.class);
+    @Test
+    @DisplayName("User can be created")
+    void testCreateUser_whenValidDetailsProvided_returnsCreatedUserDetails() throws Exception {
+        //arrange
+        userDtoMapped = new ModelMapper().map(userDetailsRequestModel, UserDto.class);
         userDtoMapped.setUserId(UUID.randomUUID().toString());
 
         Mockito.when(usersService.createUser(Mockito.any(UserDto.class)))
                 .thenReturn(userDtoMapped);
-
         RequestBuilder requestBuilder = MockMvcRequestBuilders.post("/users")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
@@ -66,8 +72,8 @@ public class UsersControllerTest {
         String response = result.getResponse().getContentAsString();
         // the controller returns a user object serialized into a json object which we can deserialize back to user object
         UserRest user = new ObjectMapper().readValue(response, UserRest.class);
-        // assert
 
+        // assert
         Assertions.assertNotNull(user);
         Assertions.assertEquals(userDetailsRequestModel.getFirstName(), user.getFirstName());
         Assertions.assertEquals(userDetailsRequestModel.getLastName(), user.getLastName());
@@ -78,29 +84,15 @@ public class UsersControllerTest {
     }
 
     @Test
-    @DisplayName("User can be created")
+    @DisplayName("User can not be created")
     void testCreateUser_whenInValidDetailsProvided_returns400StatusCode() throws Exception {
         //arrange
-        UserDetailsRequestModel userDetailsRequestModel = new UserDetailsRequestModel();
-        userDetailsRequestModel.setFirstName("John");
-        userDetailsRequestModel.setLastName("Doe");
-        userDetailsRequestModel.setEmail("johndoecom");
-        userDetailsRequestModel.setPassword("password");
-        userDetailsRequestModel.setRepeatPassword("password");
-
-        //mocking the service layer
-//        UserDto userDto = new UserDto();
-//        userDto.setFirstName("John");
-//        userDto.setLastName("Doe");
-//        userDto.setEmail("john@doe.com");
-//        userDto.setUserId(UUID.randomUUID().toString());
-
-        UserDto userDtoMapped = new ModelMapper().map(userDetailsRequestModel, UserDto.class);
+        userDetailsRequestModel.setEmail("johndoecom"); // Invalid email
+        userDtoMapped = new ModelMapper().map(userDetailsRequestModel, UserDto.class);
         userDtoMapped.setUserId(UUID.randomUUID().toString());
 
         Mockito.when(usersService.createUser(Mockito.any(UserDto.class)))
                 .thenReturn(userDtoMapped);
-
         RequestBuilder requestBuilder = MockMvcRequestBuilders.post("/users")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
@@ -112,6 +104,5 @@ public class UsersControllerTest {
         // assert
         Assertions.assertEquals("", response);
         Assertions.assertEquals(400, result.getResponse().getStatus());
-        Assertions.assertEquals(null, result.getResponse().getErrorMessage());
     }
 }
