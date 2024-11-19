@@ -32,6 +32,7 @@ public class UsersControllerTest {
     MockMvc mockMvc;
     @MockBean
     UsersService usersService;
+
     @Test
     @DisplayName("User can be created")
     void testCreateUser_whenValidDetailsProvided_returnsCreatedUserDetails() throws Exception {
@@ -74,6 +75,43 @@ public class UsersControllerTest {
         Assertions.assertNotNull(user.getUserId());
         Assertions.assertNotEquals("", user.getUserId());
         Assertions.assertFalse(user.getUserId().isEmpty());
+    }
 
+    @Test
+    @DisplayName("User can be created")
+    void testCreateUser_whenInValidDetailsProvided_returns400StatusCode() throws Exception {
+        //arrange
+        UserDetailsRequestModel userDetailsRequestModel = new UserDetailsRequestModel();
+        userDetailsRequestModel.setFirstName("John");
+        userDetailsRequestModel.setLastName("Doe");
+        userDetailsRequestModel.setEmail("johndoecom");
+        userDetailsRequestModel.setPassword("password");
+        userDetailsRequestModel.setRepeatPassword("password");
+
+        //mocking the service layer
+//        UserDto userDto = new UserDto();
+//        userDto.setFirstName("John");
+//        userDto.setLastName("Doe");
+//        userDto.setEmail("john@doe.com");
+//        userDto.setUserId(UUID.randomUUID().toString());
+
+        UserDto userDtoMapped = new ModelMapper().map(userDetailsRequestModel, UserDto.class);
+        userDtoMapped.setUserId(UUID.randomUUID().toString());
+
+        Mockito.when(usersService.createUser(Mockito.any(UserDto.class)))
+                .thenReturn(userDtoMapped);
+
+        RequestBuilder requestBuilder = MockMvcRequestBuilders.post("/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(new ObjectMapper().writeValueAsString(userDetailsRequestModel));
+        //act
+        MvcResult result = mockMvc.perform(requestBuilder).andReturn();
+        String response = result.getResponse().getContentAsString();
+
+        // assert
+        Assertions.assertEquals("", response);
+        Assertions.assertEquals(400, result.getResponse().getStatus());
+        Assertions.assertEquals(null, result.getResponse().getErrorMessage());
     }
 }
