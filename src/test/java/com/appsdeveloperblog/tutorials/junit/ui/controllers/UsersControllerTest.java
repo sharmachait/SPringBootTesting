@@ -79,6 +79,7 @@ public class UsersControllerTest {
         Assertions.assertEquals(userDetailsRequestModel.getLastName(), user.getLastName());
         Assertions.assertEquals(userDetailsRequestModel.getEmail(), user.getEmail());
         Assertions.assertNotNull(user.getUserId());
+        Assertions.assertEquals(userDtoMapped.getUserId(), user.getUserId());
         Assertions.assertNotEquals("", user.getUserId());
         Assertions.assertFalse(user.getUserId().isEmpty());
     }
