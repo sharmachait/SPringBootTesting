@@ -11,9 +11,9 @@ public class UserEntity implements Serializable {
 
     @Id
     @GeneratedValue
-    private long id;
+    private Long id;
 
-    @Column(nullable=false)
+    @Column(nullable=false, unique=true)
     private String userId;
 
     @Column(nullable=false, length=50)
@@ -28,11 +28,11 @@ public class UserEntity implements Serializable {
     @Column(nullable=false)
     private String encryptedPassword;
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
